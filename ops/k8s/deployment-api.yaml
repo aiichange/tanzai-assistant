@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-backend
+  namespace: ai-platform   # <-- use the namespace from your namespace.yaml
+  labels:
+    app: fastapi-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fastapi-backend
+  template:
+    metadata:
+      labels:
+        app: fastapi-backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: api
+          image: YOUR_DOCKERHUB_USERNAME/fastapi-backend:latest  # e.g. er_singh/fastapi-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            # Set what your app expects; inline here to avoid ConfigMap mismatches
+            - name: BACKEND
+              value: "ollama"        # or "hf"
+            - name: OLLAMA_BASE_URL
+              value: "http://ollama.runtime:11434"  # if you run Ollama in the 'runtime' ns
+            - name: MONGO_URI
+              value: "mongodb://mongo.data:27017"
+            - name: MINIO_ENDPOINT
+              value: "minio.data:9000"
+            - name: MINIO_ACCESS_KEY
+              value: "minioadmin"
+            - name: MINIO_SECRET_KEY
+              value: "minioadmin"
+            - name: MINIO_BUCKET
+              value: "tanai-files"
+          readinessProbe:
+            httpGet: { path: /metrics, port: 8000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /metrics, port: 8000 }
+            initialDelaySeconds: 20
+            periodSeconds: 20

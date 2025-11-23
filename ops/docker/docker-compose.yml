@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: ops/docker/Dockerfile.api
+    image: fastapi-backend:latest
+    ports:
+      - "8000:8000"
+
+  ui:
+    build:
+      context: ../..
+      dockerfile: ops/docker/Dockerfile
+    image: streamlit-ui:latest
+    ports:
+      - "8501:8501"
+    environment:
+      API_URL_CHAT: "http://api:8000/chat"
+    depends_on:
+      - api

@@ -1,0 +1,15 @@
+venv
+__pycache__/
+*.pyc
+*.pyo
+.git
+.gitignore
+.DS_Store
+**/.ipynb_checkpoints
+*.log
+dist
+build
+.env
+.env.*
+.idea
+.vscode
