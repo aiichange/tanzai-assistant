@@ -2,8 +2,10 @@ import os, httpx
 from transformers import pipeline, set_seed, AutoModelForCausalLM, AutoTokenizer
 
 # ---------- Config ----------
+# ---------- Config ----------
 OLLAMA_BASE = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-HF_MODEL = os.getenv("HF_MODEL", r"C:/Users/er_si/models/zephyr-7b-alpha")
+HF_MODEL = os.getenv("HF_MODEL", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+
 
 # Allow .env toggle, default true
 USE_OLLAMA_ENV = os.getenv("USE_OLLAMA", "true").lower() == "true"
@@ -28,20 +30,19 @@ def use_ollama() -> bool:
 
 
 def _hf(model_name: str = HF_MODEL):
-    """Lazy-load Hugging Face pipeline with caching (local model only)."""
+    """Lazy-load Hugging Face pipeline with caching (downloads from HF Hub)."""
     if model_name in _hf_pipes:
         return _hf_pipes[model_name]
 
-    # ✅ Load tokenizer & model locally
-    tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
-    model = AutoModelForCausalLM.from_pretrained(model_name, local_files_only=True)
+    # Download tokenizer & model from Hugging Face Hub
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name)
 
-    # ✅ Build pipeline without local_files_only
     pipe = pipeline(
         "text-generation",
         model=model,
         tokenizer=tokenizer,
-        device=-1  # force CPU
+        device=-1  # CPU; use device_map="auto" if you attach GPU
     )
     set_seed(42)
     _hf_pipes[model_name] = pipe
