@@ -1,0 +1,20 @@
+# Core LLM + Transformers
+transformers==4.56.1
+accelerate==1.10.1
+sentencepiece==0.2.1
+safetensors==0.6.2
+tqdm==4.67.1
+
+# LangChain ecosystem
+langchain==0.3.27
+langchain-core==0.3.75
+langchain-text-splitters==0.3.11
+langsmith==0.4.25
+
+# Vector DB + Embeddings
+chromadb
+sentence-transformers
+
+# Storage + Database
+pymongo
+pypdf

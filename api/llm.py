@@ -1,11 +1,10 @@
 import os, httpx
+import torch  # ✅ NEW: for GPU detection
 from transformers import pipeline, set_seed, AutoModelForCausalLM, AutoTokenizer
 
 # ---------- Config ----------
-# ---------- Config ----------
 OLLAMA_BASE = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 HF_MODEL = os.getenv("HF_MODEL", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
-
 
 # Allow .env toggle, default true
 USE_OLLAMA_ENV = os.getenv("USE_OLLAMA", "true").lower() == "true"
@@ -38,11 +37,15 @@ def _hf(model_name: str = HF_MODEL):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
 
+    # ✅ Use GPU if available, otherwise CPU
+    device = 0 if torch.cuda.is_available() else -1
+    print(f"Device set to use {'cuda:0' if device == 0 else 'cpu'}")
+
     pipe = pipeline(
         "text-generation",
         model=model,
         tokenizer=tokenizer,
-        device=-1  # CPU; use device_map="auto" if you attach GPU
+        device=device,  # ✅ now respects GPU/CPU
     )
     set_seed(42)
     _hf_pipes[model_name] = pipe
@@ -61,7 +64,7 @@ async def chat_ollama(messages, model="llama3.1:8b-instruct-q4_K_M", stream=Fals
 
 
 def chat_hf(prompt: str, model: str = HF_MODEL, max_new_tokens=256):
-    """Fallback to Hugging Face model (local Zephyr by default)."""
+    """Fallback to Hugging Face model (HF_MODEL from env by default)."""
     pipe = _hf(model)
     out = pipe(
         prompt,
