@@ -18,3 +18,4 @@ sentence-transformers
 # Storage + Database
 pymongo
 pypdf
+duckduckgo-search
